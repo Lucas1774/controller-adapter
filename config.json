@@ -1,0 +1,20 @@
+{
+    "button_mapping": {
+        "1": "A",
+        "2": "B",
+        "3": "X",
+        "4": "Y",
+        "5": "L1",
+        "6": "R1",
+        "7": "SELECT",
+        "8": "START",
+        "9": "L3",
+        "10": "R3",
+        "11": "XBOX",
+        "12": "ACTIVATE"
+    },
+    "LEFT_JOYSTICK_DEAD_ZONE": 0.5,
+    "RIGHT_JOYSTICK_DEAD_ZONE": 0.2,
+    "SENSITIVITY": 0.9,
+    "CROSS_SENSITIVITY": 0.5
+}
