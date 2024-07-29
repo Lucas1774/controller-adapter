@@ -3,7 +3,7 @@ import time
 
 import pyautogui
 import pygame
-from pynput.keyboard import Controller, Key
+from pynput.keyboard import Key, Controller as KeyboardController
 from pynput.mouse import Button, Controller as MouseController
 
 
@@ -44,7 +44,8 @@ with open("config.json", "r") as config:
     CROSS_SENSITIVITY = config.get("CROSS_SENSITIVITY", 0.5)
     del config
 
-keyboard = Controller()
+keyboard = KeyboardController()
+mouse = MouseController()
 pygame.init()
 pygame.joystick.init()
 joystick = pygame.joystick.Joystick(0)
@@ -110,7 +111,7 @@ try:
                     elif button == "R1":
                         press_then_release("r")
                     elif button == "A":
-                        MouseController().click(Button.left)
+                        mouse.click(Button.left)
                     elif button == "X":
                         press_then_release("c")
                     elif button == "Y":
