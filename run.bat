@@ -1,2 +1,2 @@
-.\joy_to_mouse.exe
+.\mapper.exe swarm
 PAUSE
