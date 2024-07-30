@@ -81,11 +81,11 @@ def run(
                     else:
                         pyautogui.moveTo(
                             int(
-                                (right_x_axis * center_x * LEFT_JOYSTICK_SENSITIVITY)
+                                (right_x_axis * center_x * RIGHT_JOYSTICK_SENSITIVITY)
                                 + center_x
                             ),
                             int(
-                                (right_y_axis * center_y * LEFT_JOYSTICK_SENSITIVITY)
+                                (right_y_axis * center_y * RIGHT_JOYSTICK_SENSITIVITY)
                                 + center_y
                             ),
                         )
