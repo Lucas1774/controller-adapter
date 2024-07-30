@@ -133,6 +133,8 @@ def run(
                         elif event.value[0] == 1:
                             pyautogui.moveTo(1200, center_y)
 
+            time.sleep(0.001)
+
     except KeyboardInterrupt:
         pass
     finally:
