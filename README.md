@@ -15,6 +15,7 @@ The program uses the next button to action map (I didn't want to make this confi
     X -> C
     Y -> O
     B -> TAB
+    R3 -> toggle high precision mode (e.g for Jinx rocket)
     LEFT JOYSTICK -> WASD
     RIGHT JOYSTICK -> moves the camera
-    DOWN, RIGHT, LEFT -> moves the mouse to pick a card.
+    UP, DOWN, LEFT, RIGHT -> moves the mouse to pick a card or reroll

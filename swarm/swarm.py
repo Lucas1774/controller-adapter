@@ -21,6 +21,7 @@ def run(
     mouse,
 ):
     key_state = {"a": False, "d": False, "w": False, "s": False}
+    high_precision = False
     center_x = screen_width // 2
     center_y = screen_height // 2
     running = config.get("run_automatically")
@@ -73,16 +74,22 @@ def run(
                     abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE
                     or abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE
                 ):
-                    pyautogui.moveTo(
-                        int(
-                            (right_x_axis * center_x * LEFT_JOYSTICK_SENSITIVITY)
-                            + center_x
-                        ),
-                        int(
-                            (right_y_axis * center_y * LEFT_JOYSTICK_SENSITIVITY)
-                            + center_y
-                        ),
-                    )
+                    if high_precision:
+                        pyautogui.moveRel(
+                            int(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
+                            int(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
+                        )
+                    else:
+                        pyautogui.moveTo(
+                            int(
+                                (right_x_axis * center_x * LEFT_JOYSTICK_SENSITIVITY)
+                                + center_x
+                            ),
+                            int(
+                                (right_y_axis * center_y * LEFT_JOYSTICK_SENSITIVITY)
+                                + center_y
+                            ),
+                        )
 
                 for event in events:  # buttons
                     if event.type == pygame.JOYBUTTONDOWN:
@@ -105,32 +112,27 @@ def run(
                                 press_then_release(keyboard, "o")
                             elif button == "B":
                                 press_then_release(keyboard, Key.tab)
-                            elif button == "DOWN":
+                            elif button == "R3":
+                                high_precision = not high_precision
                                 pyautogui.moveTo(center_x, center_y)
-                            elif button == "RIGHT":
-                                pyautogui.moveTo(
-                                    center_x + center_x * CROSS_SENSITIVITY,
-                                    center_y,
-                                )
+                            elif button == "UP":
+                                pyautogui.moveTo(center_x, center_y)
+                            elif button == "DOWN":
+                                pyautogui.moveTo(center_x, 825)
                             elif button == "LEFT":
-                                pyautogui.moveTo(
-                                    center_x - center_x * CROSS_SENSITIVITY,
-                                    center_y,
-                                )
+                                pyautogui.moveTo(720, center_y)
+                            elif button == "RIGHT":
+                                pyautogui.moveTo(1200, center_y)
 
                     elif event.type == pygame.JOYHATMOTION:  # cross
-                        if event.value[1] == -1:
+                        if event.value[1] == 1:
                             pyautogui.moveTo(center_x, center_y)
-                        elif event.value[0] == 1:
-                            pyautogui.moveTo(
-                                center_x + center_x * CROSS_SENSITIVITY, center_y
-                            )
+                        elif event.value[1] == -1:
+                            pyautogui.moveTo(center_x, 825)
                         elif event.value[0] == -1:
-                            pyautogui.moveTo(
-                                center_x - center_x * CROSS_SENSITIVITY, center_y
-                            )
-
-            time.sleep(0.01)
+                            pyautogui.moveTo(720, center_y)
+                        elif event.value[0] == 1:
+                            pyautogui.moveTo(1200, center_y)
 
     except KeyboardInterrupt:
         pass
