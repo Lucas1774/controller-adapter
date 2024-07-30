@@ -34,8 +34,7 @@ def run(
     RIGHT_JOYSTICK_DEAD_ZONE = config.get("right_joystick_dead_zone")
     LEFT_JOYSTICK_SENSITIVITY = config.get("left_joystick_sensitivity")
     RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
-    CROSS_SENSITIVITY = config.get("cross_sensitivity")
-    pyautogui.FAILSAFE = not (RIGHT_JOYSTICK_SENSITIVITY == 1 or CROSS_SENSITIVITY == 1)
+    pyautogui.FAILSAFE = False
 
     try:
         while True:
