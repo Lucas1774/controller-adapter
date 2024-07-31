@@ -1,6 +1,5 @@
 {
     "run_automatically": true,
-    "high_precision_default": false,
     "button_mapping": {
         "A": 15,
         "B": 14,

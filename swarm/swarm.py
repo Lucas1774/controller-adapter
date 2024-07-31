@@ -67,7 +67,7 @@ def run(
     RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
     BUTTON_MAPPING = {v - 1: k for k, v in config.get("button_mapping").items()}
     running = config.get("run_automatically")
-    high_precision_always_on = config.get("high_precision_default")
+    high_precision_always_on = False
     center_x = screen_width // 2
     center_y = screen_height // 2
     try:
