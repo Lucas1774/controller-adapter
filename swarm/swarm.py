@@ -108,7 +108,7 @@ def run(
                     if event.type == pygame.JOYBUTTONDOWN:
                         button = BUTTON_MAPPING.get(event.button)
                         if button == "ACTIVATE":
-                            running = not running
+                            running = True
                             break
             else:
                 # state
@@ -143,12 +143,11 @@ def run(
                         button_state["UP"] = event.value[1] == 1
 
                 if not high_precision_always_on:
-                    if has_triggers:
-                        high_precision = (
-                            joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                        )
-                    else:
-                        high_precision = button_state["L2"]
+                    high_precision = (
+                        joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
+                        if has_triggers
+                        else button_state["L2"]
+                    )
                 if button_state["ACTIVATE"]:
                     running = False
                     button_state["ACTIVATE"] = False
