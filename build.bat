@@ -1,5 +1,5 @@
 @echo off
-pyinstaller --onefile --add-data "swarm;swarm" mapper.py
+pyinstaller --onefile --add-data "util;util" --add-data "swarm;swarm" mapper.py
 move dist\mapper.exe .
 rmdir /s /q dist
 rmdir /s /q build

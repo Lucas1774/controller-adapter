@@ -1,17 +1,10 @@
-import threading
 import time
 
 import pyautogui
 import pygame
-from pynput.keyboard import Key
 from pynput.mouse import Button
 
-
-KEY_MAPPING = {
-    "esc": Key.esc,
-    "tab": Key.tab,
-}
-pyautogui.FAILSAFE = False
+from util.functions import Functions
 
 
 def run(
@@ -27,44 +20,6 @@ def run(
     def toggle_high_precision_always_on():
         nonlocal high_precision_always_on
         high_precision_always_on = not high_precision_always_on
-
-    def press_then_release(key_to_tap):
-        keyboard.press(KEY_MAPPING.get(key_to_tap, key_to_tap))
-        time.sleep(0.01)
-        keyboard.release(KEY_MAPPING.get(key_to_tap, key_to_tap))
-
-    def handle_to_key_tap_input(input, key_to_tap):
-        if button_state[input]:
-            if input in INPUT_TO_LOGIC_BEFORE:
-                INPUT_TO_LOGIC_BEFORE[input]()
-            threading.Thread(target=press_then_release, args=(key_to_tap,)).start()
-            button_state[input] = False
-
-    def handle_to_key_hold_input(input, key_to_press):
-        if button_state[input]:
-            if not key_state[key_to_press]:
-                if input in INPUT_TO_LOGIC_BEFORE:
-                    INPUT_TO_LOGIC_BEFORE[input]()
-                keyboard.press(KEY_MAPPING.get(key_to_press, key_to_press))
-                key_state[key_to_press] = True
-        else:
-            if key_state[key_to_press]:
-                keyboard.release(KEY_MAPPING.get(key_to_press, key_to_press))
-                key_state[key_to_press] = False
-
-    def handle_to_mouse_absolute_move_input(input, x, y):
-        if button_state[input]:
-            if input in INPUT_TO_LOGIC_BEFORE:
-                INPUT_TO_LOGIC_BEFORE[input]()
-            pyautogui.moveTo(x, y)
-            button_state[input] = False
-
-    def handle_to_click_input(input, button_to_click):
-        if button_state[input]:
-            if input in INPUT_TO_LOGIC_BEFORE:
-                INPUT_TO_LOGIC_BEFORE[input]()
-            mouse.click(button_to_click)
-            button_state[input] = False
 
     LEFT_JOYSTICK_X_ID = config.get("left_joystick_x_id")
     LEFT_JOYSTICK_Y_ID = config.get("left_joystick_y_id")
@@ -125,6 +80,8 @@ def run(
         "R3": toggle_high_precision_always_on,
     }
 
+    functions = Functions(keyboard, mouse, INPUT_TO_LOGIC_BEFORE)
+
     try:
         while True:
             pygame.event.pump()
@@ -143,18 +100,10 @@ def run(
                 left_y_axis = joystick.get_axis(LEFT_JOYSTICK_Y_ID)
                 is_x_axis_active = abs(left_x_axis) > LEFT_JOYSTICK_DEAD_ZONE
                 is_y_axis_active = abs(left_y_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_LEFT"] = (
-                    is_x_axis_active and left_x_axis < LEFT_JOYSTICK_DEAD_ZONE
-                )
-                button_state["LEFT_JOYSTICK_RIGHT"] = (
-                    is_x_axis_active and left_x_axis > LEFT_JOYSTICK_DEAD_ZONE
-                )
-                button_state["LEFT_JOYSTICK_UP"] = (
-                    is_y_axis_active and left_y_axis < LEFT_JOYSTICK_DEAD_ZONE
-                )
-                button_state["LEFT_JOYSTICK_DOWN"] = (
-                    is_y_axis_active and left_y_axis > LEFT_JOYSTICK_DEAD_ZONE
-                )
+                button_state["LEFT_JOYSTICK_LEFT"] = is_x_axis_active and left_x_axis < LEFT_JOYSTICK_DEAD_ZONE
+                button_state["LEFT_JOYSTICK_RIGHT"] = is_x_axis_active and left_x_axis > LEFT_JOYSTICK_DEAD_ZONE
+                button_state["LEFT_JOYSTICK_UP"] = is_y_axis_active and left_y_axis < LEFT_JOYSTICK_DEAD_ZONE
+                button_state["LEFT_JOYSTICK_DOWN"] = is_y_axis_active and left_y_axis > LEFT_JOYSTICK_DEAD_ZONE
                 right_x_axis = joystick.get_axis(RIGHT_JOYSTICK_X_ID)
                 right_y_axis = joystick.get_axis(RIGHT_JOYSTICK_Y_ID)
 
@@ -170,13 +119,9 @@ def run(
                         button_state["UP"] = event.value[1] == 1
 
                 if has_triggers:
-                    button_state["R2"] = (
-                        joystick.get_axis(RIGHT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                    )
+                    button_state["R2"] = joystick.get_axis(RIGHT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
                     if not high_precision_always_on:
-                        high_precision = (
-                            joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                        )
+                        high_precision = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
                 else:
                     if not high_precision_always_on:
                         high_precision = button_state["L2"]
@@ -188,17 +133,14 @@ def run(
 
                 # action
                 for input, key_to_tap in INPUT_TO_KEY_TAP.items():
-                    handle_to_key_tap_input(input, key_to_tap)
+                    functions.handle_to_key_tap_input(button_state, input, key_to_tap)
                 for input, key_to_press in INPUT_TO_KEY_HOLD.items():
-                    handle_to_key_hold_input(input, key_to_press)
+                    functions.handle_to_key_hold_input(button_state, key_state, input, key_to_press)
                 for input, (x, y) in INPUT_TO_MOUSE_MOVE.items():
-                    handle_to_mouse_absolute_move_input(input, x, y)
-                handle_to_click_input("A", Button.left)
+                    functions.handle_to_mouse_absolute_move_input(button_state, input, x, y)
+                functions.handle_to_click_input(button_state, "A", Button.left)
 
-                if (
-                    abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE
-                    or abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE
-                ):
+                if abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE or abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE:
                     if high_precision_always_on or high_precision:
                         pyautogui.moveRel(
                             int(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
@@ -206,17 +148,11 @@ def run(
                         )
                     else:
                         pyautogui.moveTo(
-                            int(
-                                (right_x_axis * center_x * RIGHT_JOYSTICK_SENSITIVITY)
-                                + center_x
-                            ),
-                            int(
-                                (right_y_axis * center_y * RIGHT_JOYSTICK_SENSITIVITY)
-                                + center_y
-                            ),
+                            int((right_x_axis * center_x * RIGHT_JOYSTICK_SENSITIVITY) + center_x),
+                            int((right_y_axis * center_y * RIGHT_JOYSTICK_SENSITIVITY) + center_y),
                         )
 
-            time.sleep(0.005)
+            time.sleep(0.001)
 
     except KeyboardInterrupt:
         pass

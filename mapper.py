@@ -8,6 +8,8 @@ from pynput.mouse import Controller as MouseController
 
 from swarm import swarm
 
+pyautogui.FAILSAFE = False
+
 if __name__ == "__main__":
     try:
         game = sys.argv[1]
