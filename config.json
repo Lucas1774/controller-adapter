@@ -1,5 +1,6 @@
 {
     "run_automatically": true,
+    "high_precision_default": false,
     "button_mapping": {
         "A": 15,
         "B": 14,
@@ -7,7 +8,7 @@
         "Y": 13,
         "L1": 11,
         "R1": 12,
-        "SELECT": 1,
+        "SELECT": 0,
         "START": 4,
         "L3": 2,
         "R3": 3,
@@ -27,8 +28,10 @@
     "left_trigger_id": 4,
     "right_trigger_id": 5,
     "left_joystick_dead_zone": 0.5,
-    "right_joystick_dead_zone": 0.2,
+    "right_joystick_dead_zone": 0.1,
     "left_joystick_sensitivity": 1,
-    "right_joystick_sensitivity": 1,
-    "cross_sensitivity": 0.25
+    "right_joystick_sensitivity": 0.5,
+    "left_trigger_dead_zone": 0.05,
+    "right_trigger_dead_zone": 0.05,
+    "cross_sensitivity": 1
 }
