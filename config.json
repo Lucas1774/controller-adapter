@@ -27,7 +27,7 @@
     "left_trigger_id": 4,
     "right_trigger_id": 5,
     "left_joystick_dead_zone": 0.5,
-    "right_joystick_dead_zone": 0.1,
+    "right_joystick_dead_zone": 0.2,
     "left_joystick_sensitivity": 1,
     "right_joystick_sensitivity": 0.5,
     "left_trigger_dead_zone": 0.05,
