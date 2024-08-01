@@ -58,7 +58,7 @@ if __name__ == "__main__":
     try:
         joystick.get_axis(config.get("left_trigger_id"))
         has_triggers = True
-    except pygame.error:
+    except (pygame.error, TypeError):
         has_triggers = False
 
     if game == "swarm":
