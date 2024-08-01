@@ -48,14 +48,13 @@ if __name__ == "__main__":
 
     with open("config.json", "r") as config_file:
         config = json.load(config_file)
-        keyboard = KeyboardController()
-        mouse = MouseController()
-        pygame.init()
-        pygame.joystick.init()
-        joystick = pygame.joystick.Joystick(0)
-        joystick.init()
-        screen_width, screen_height = pyautogui.size()
-
+    screen_width, screen_height = pyautogui.size()
+    keyboard = KeyboardController()
+    mouse = MouseController()
+    pygame.init()
+    pygame.joystick.init()
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
     try:
         joystick.get_axis(config.get("left_trigger_id"))
         has_triggers = True
