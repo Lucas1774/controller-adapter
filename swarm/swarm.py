@@ -100,10 +100,10 @@ def run(
                 left_y_axis = joystick.get_axis(LEFT_JOYSTICK_Y_ID)
                 is_x_axis_active = abs(left_x_axis) > LEFT_JOYSTICK_DEAD_ZONE
                 is_y_axis_active = abs(left_y_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_LEFT"] = is_x_axis_active and left_x_axis < LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_RIGHT"] = is_x_axis_active and left_x_axis > LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_UP"] = is_y_axis_active and left_y_axis < LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_DOWN"] = is_y_axis_active and left_y_axis > LEFT_JOYSTICK_DEAD_ZONE
+                button_state["LEFT_JOYSTICK_LEFT"] = is_x_axis_active and left_x_axis < 0
+                button_state["LEFT_JOYSTICK_RIGHT"] = is_x_axis_active and left_x_axis > 0
+                button_state["LEFT_JOYSTICK_UP"] = is_y_axis_active and left_y_axis < 0
+                button_state["LEFT_JOYSTICK_DOWN"] = is_y_axis_active and left_y_axis > 0
                 right_x_axis = joystick.get_axis(RIGHT_JOYSTICK_X_ID)
                 right_y_axis = joystick.get_axis(RIGHT_JOYSTICK_Y_ID)
 
