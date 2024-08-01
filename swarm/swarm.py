@@ -1,3 +1,4 @@
+import json
 import time
 
 import pyautogui
@@ -34,6 +35,10 @@ def run(
     RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
     BUTTON_MAPPING = {v - 1: k for k, v in config.get("button_mapping").items()}
     running = config.get("run_automatically")
+    with open("swarm/config.json", "r") as config_file:
+        config = json.load(config_file)
+        high_precision_always_on = config.get("high_precision_on_by_default")
+        MAX_RATIUS_HIGH_PRECISION_OFF = config.get("max_ratius_when_high_precision_off")
     key_state = {
         "a": False,
         "d": False,
@@ -42,7 +47,6 @@ def run(
         "tab": False,
         "t": False,
     }
-    high_precision_always_on = False
     center_x = screen_width // 2
     center_y = screen_height // 2
 
@@ -144,8 +148,8 @@ def run(
                         )
                     else:
                         pyautogui.moveTo(
-                            int((right_x_axis * center_x * RIGHT_JOYSTICK_SENSITIVITY) + center_x),
-                            int((right_y_axis * center_y * RIGHT_JOYSTICK_SENSITIVITY) + center_y),
+                            int((right_x_axis * center_x * MAX_RATIUS_HIGH_PRECISION_OFF) + center_x),
+                            int((right_y_axis * center_y * MAX_RATIUS_HIGH_PRECISION_OFF) + center_y),
                         )
 
             time.sleep(0.001)

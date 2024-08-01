@@ -1,5 +1,4 @@
 {
-    "run_automatically": true,
     "button_mapping": {
         "A": 15,
         "B": 14,
@@ -20,6 +19,7 @@
         "R2": 10,
         "ACTIVATE": 1
     },
+    "run_automatically": true,
     "left_joystick_x_id": 0,
     "left_joystick_y_id": 1,
     "right_joystick_x_id": 2,
@@ -29,7 +29,7 @@
     "left_joystick_dead_zone": 0.5,
     "right_joystick_dead_zone": 0.2,
     "left_joystick_sensitivity": 1,
-    "right_joystick_sensitivity": 0.5,
+    "right_joystick_sensitivity": 1,
     "left_trigger_dead_zone": 0.05,
     "right_trigger_dead_zone": 0.05,
     "cross_sensitivity": 1
