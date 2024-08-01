@@ -9,6 +9,7 @@ from util.functions import Functions
 
 def run(
     button_state,
+    has_triggers,
     config,
     screen_width,
     screen_height,
@@ -44,11 +45,6 @@ def run(
     high_precision_always_on = False
     center_x = screen_width // 2
     center_y = screen_height // 2
-    try:
-        joystick.get_axis(LEFT_TRIGGER_ID)
-        has_triggers = True
-    except pygame.error:
-        has_triggers = False
 
     INPUT_TO_KEY_TAP = {
         "START": "esc",

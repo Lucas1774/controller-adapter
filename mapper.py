@@ -56,15 +56,22 @@ if __name__ == "__main__":
         joystick.init()
         screen_width, screen_height = pyautogui.size()
 
-        if game == "swarm":
-            swarm.run(
-                button_state,
-                config,
-                screen_width,
-                screen_height,
-                joystick,
-                keyboard,
-                mouse,
-            )
-        else:
-            print("Invalid game")
+    try:
+        joystick.get_axis(config.get("left_trigger_id"))
+        has_triggers = True
+    except pygame.error:
+        has_triggers = False
+
+    if game == "swarm":
+        swarm.run(
+            button_state,
+            has_triggers,
+            config,
+            screen_width,
+            screen_height,
+            joystick,
+            keyboard,
+            mouse,
+        )
+    else:
+        print("Invalid game")
