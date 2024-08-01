@@ -8,8 +8,6 @@ from pynput.mouse import Controller as MouseController
 
 from swarm import swarm
 
-pyautogui.FAILSAFE = False
-
 if __name__ == "__main__":
     try:
         game = sys.argv[1]
@@ -36,7 +34,8 @@ if __name__ == "__main__":
         "L2": False,
         "R2": False,
         "ACTIVATE": False,
-        "LEFT_JOYSTICK_LEFT": False,  # for non actually analogic joysticks
+        # for non actually analog sticks or to abstract digital input from those that are
+        "LEFT_JOYSTICK_LEFT": False,
         "LEFT_JOYSTICK_RIGHT": False,
         "LEFT_JOYSTICK_UP": False,
         "LEFT_JOYSTICK_DOWN": False,
@@ -48,6 +47,7 @@ if __name__ == "__main__":
 
     with open("config.json", "r") as config_file:
         config = json.load(config_file)
+    pyautogui.FAILSAFE = False
     screen_width, screen_height = pyautogui.size()
     keyboard = KeyboardController()
     mouse = MouseController()
