@@ -1,7 +1,6 @@
 import threading
 import time
 
-import pyautogui
 from pynput.keyboard import Key
 
 KEY_MAPPING = {
@@ -15,6 +14,13 @@ class Functions:
         self.keyboard = keyboard
         self.mouse = mouse
         self.input_to_logic_before = input_to_logic_before
+
+    def move_mouse(self, mouse, x, y):
+        mouse.position = (x, y)
+
+    def move_mouse_relative(self, mouse, x, y):
+        current_x, current_y = mouse.position
+        mouse.position = (current_x + x, current_y + y)
 
     def press_then_release(self, key_to_tap):
         self.keyboard.press(KEY_MAPPING.get(key_to_tap, key_to_tap))
@@ -44,7 +50,7 @@ class Functions:
         if button_state[input]:
             if input in self.input_to_logic_before:
                 self.input_to_logic_before[input]()
-            pyautogui.moveTo(x, y)
+            self.move_mouse(self.mouse, x, y)
             button_state[input] = False
 
     def handle_to_click_input(self, button_state, input, button_to_click):

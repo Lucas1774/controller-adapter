@@ -1,7 +1,6 @@
 import json
 import time
 
-import pyautogui
 import pygame
 from pynput.mouse import Button
 
@@ -85,7 +84,9 @@ def run(
     functions = Functions(keyboard, mouse, INPUT_TO_LOGIC_BEFORE)
 
     try:
+        last_update_time = time.perf_counter()
         while True:
+            loop_start_time = time.perf_counter()
             pygame.event.pump()
             events = pygame.event.get()
 
@@ -100,14 +101,16 @@ def run(
                 # state
                 left_x_axis = joystick.get_axis(LEFT_JOYSTICK_X_ID)
                 left_y_axis = joystick.get_axis(LEFT_JOYSTICK_Y_ID)
-                is_x_axis_active = abs(left_x_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                is_y_axis_active = abs(left_y_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_LEFT"] = is_x_axis_active and left_x_axis < 0
-                button_state["LEFT_JOYSTICK_RIGHT"] = is_x_axis_active and left_x_axis > 0
-                button_state["LEFT_JOYSTICK_UP"] = is_y_axis_active and left_y_axis < 0
-                button_state["LEFT_JOYSTICK_DOWN"] = is_y_axis_active and left_y_axis > 0
+                is_left_x_axis_active = abs(left_x_axis) > LEFT_JOYSTICK_DEAD_ZONE
+                is_left_y_axis_active = abs(left_y_axis) > LEFT_JOYSTICK_DEAD_ZONE
+                button_state["LEFT_JOYSTICK_LEFT"] = is_left_x_axis_active and left_x_axis < 0
+                button_state["LEFT_JOYSTICK_RIGHT"] = is_left_x_axis_active and left_x_axis > 0
+                button_state["LEFT_JOYSTICK_UP"] = is_left_y_axis_active and left_y_axis < 0
+                button_state["LEFT_JOYSTICK_DOWN"] = is_left_y_axis_active and left_y_axis > 0
                 right_x_axis = joystick.get_axis(RIGHT_JOYSTICK_X_ID)
                 right_y_axis = joystick.get_axis(RIGHT_JOYSTICK_Y_ID)
+                is_right_x_axis_active = abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE
+                is_right_y_axis_active = abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE
 
                 for event in events:
                     if event.type == pygame.JOYBUTTONDOWN:
@@ -128,10 +131,10 @@ def run(
                     button_state["L2"] = False
                 if button_state["R2"]:
                     if current_radius < 1:
-                        current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.2
+                        current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.001
                 elif button_state["L2"]:
                     if current_radius > 0.2:
-                        current_radius -= RIGHT_JOYSTICK_SENSITIVITY * 0.2
+                        current_radius -= RIGHT_JOYSTICK_SENSITIVITY * 0.001
                 else:
                     current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
 
@@ -149,19 +152,23 @@ def run(
                     functions.handle_to_mouse_absolute_move_input(button_state, input, x, y)
                 functions.handle_to_click_input(button_state, "A", Button.left)
 
-                if abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE or abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE:
+                if is_right_x_axis_active or is_right_y_axis_active:
                     if high_precision:
-                        pyautogui.moveRel(
-                            int(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
-                            int(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
-                        )
+                        if time.perf_counter() - last_update_time > 0.1:
+                            functions.move_mouse_relative(
+                                mouse,
+                                round(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
+                                round(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
+                            )
+                            last_update_time = time.perf_counter()
                     else:
-                        pyautogui.moveTo(
-                            int((right_x_axis * center_x * current_radius) + center_x),
-                            int((right_y_axis * center_y * current_radius) + center_y),
+                        functions.move_mouse(
+                            mouse,
+                            round((right_x_axis * center_x * current_radius) + center_x),
+                            round((right_y_axis * center_y * current_radius) + center_y),
                         )
 
-            time.sleep(0.001)
+            time.sleep(max(0.001 - (time.perf_counter() - loop_start_time), 0))
 
     except KeyboardInterrupt:
         pass

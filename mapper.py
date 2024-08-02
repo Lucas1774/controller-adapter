@@ -47,7 +47,6 @@ if __name__ == "__main__":
 
     with open("config.json", "r") as config_file:
         config = json.load(config_file)
-    pyautogui.FAILSAFE = False
     screen_width, screen_height = pyautogui.size()
     keyboard = KeyboardController()
     mouse = MouseController()
