@@ -19,9 +19,9 @@ def run(
     mouse,
 ):
 
-    def toggle_high_precision_always_on():
-        nonlocal high_precision_always_on
-        high_precision_always_on = not high_precision_always_on
+    def toggle_high_precision():
+        nonlocal high_precision
+        high_precision = not high_precision
 
     LEFT_JOYSTICK_X_ID = config.get("left_joystick_x_id")
     LEFT_JOYSTICK_Y_ID = config.get("left_joystick_y_id")
@@ -32,13 +32,15 @@ def run(
     LEFT_JOYSTICK_DEAD_ZONE = config.get("left_joystick_dead_zone")
     RIGHT_JOYSTICK_DEAD_ZONE = config.get("right_joystick_dead_zone")
     LEFT_TRIGGER_DEAD_ZONE = config.get("left_trigger_dead_zone")
+    RIGHT_TRIGGER_DEAD_ZONE = config.get("right_trigger_dead_zone")
     RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
     BUTTON_MAPPING = {v - 1: k for k, v in config.get("button_mapping").items()}
     running = config.get("run_automatically")
     with open("swarm/config.json", "r") as config_file:
         config = json.load(config_file)
-        high_precision_always_on = config.get("high_precision_on_by_default")
-        MAX_RATIUS_HIGH_PRECISION_OFF = config.get("max_ratius_when_high_precision_off")
+        high_precision = config.get("high_precision_on_by_default")
+        MAX_RADIUS_HIGH_PRECISION_OFF = config.get("default_radius")
+        current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
     key_state = {
         "a": False,
         "d": False,
@@ -64,7 +66,7 @@ def run(
         "LEFT_JOYSTICK_UP": "w",
         "LEFT_JOYSTICK_DOWN": "s",
         "B": "tab",
-        "R2": "t",
+        "L3": "t",
     }
 
     INPUT_TO_MOUSE_MOVE = {
@@ -76,8 +78,8 @@ def run(
     }
 
     INPUT_TO_LOGIC_BEFORE = {
-        "R2": lambda: pyautogui.moveTo(center_x, center_y),
-        "R3": toggle_high_precision_always_on,
+        "L3": lambda: functions.move_mouse(mouse, center_x, center_y),
+        "R3": toggle_high_precision,
     }
 
     functions = Functions(keyboard, mouse, INPUT_TO_LOGIC_BEFORE)
@@ -119,12 +121,19 @@ def run(
                         button_state["UP"] = event.value[1] == 1
 
                 if has_triggers:
-                    button_state["R2"] = joystick.get_axis(RIGHT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                    if not high_precision_always_on:
-                        high_precision = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
+                    button_state["R2"] = joystick.get_axis(RIGHT_TRIGGER_ID) > RIGHT_TRIGGER_DEAD_ZONE
+                    button_state["L2"] = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
+                if high_precision or button_state["R2"] and button_state["L2"]:
+                    button_state["R2"] = False
+                    button_state["L2"] = False
+                if button_state["R2"]:
+                    if current_radius < 1:
+                        current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.2
+                elif button_state["L2"]:
+                    if current_radius > 0.2:
+                        current_radius -= RIGHT_JOYSTICK_SENSITIVITY * 0.2
                 else:
-                    if not high_precision_always_on:
-                        high_precision = button_state["L2"]
+                    current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
 
                 if button_state["ACTIVATE"]:
                     running = False
@@ -141,15 +150,15 @@ def run(
                 functions.handle_to_click_input(button_state, "A", Button.left)
 
                 if abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE or abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE:
-                    if high_precision_always_on or high_precision:
+                    if high_precision:
                         pyautogui.moveRel(
                             int(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
                             int(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
                         )
                     else:
                         pyautogui.moveTo(
-                            int((right_x_axis * center_x * MAX_RATIUS_HIGH_PRECISION_OFF) + center_x),
-                            int((right_y_axis * center_y * MAX_RATIUS_HIGH_PRECISION_OFF) + center_y),
+                            int((right_x_axis * center_x * current_radius) + center_x),
+                            int((right_y_axis * center_y * current_radius) + center_y),
                         )
 
             time.sleep(0.001)

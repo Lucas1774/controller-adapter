@@ -1,4 +1,3 @@
 {
-    "high_precision_on_by_default": false,
-    "max_ratius_when_high_precision_off": 0.5
+    "default_radius": 0.5
 }
