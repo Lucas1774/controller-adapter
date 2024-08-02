@@ -18,9 +18,13 @@ def run(
     mouse,
 ):
 
-    def toggle_high_precision():
-        nonlocal high_precision
-        high_precision = not high_precision
+    def toggle_high_precision_always_on():
+        nonlocal high_precision_always_on
+        high_precision_always_on = not high_precision_always_on
+
+    def reset_radius():
+        nonlocal current_radius
+        current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
 
     LEFT_JOYSTICK_X_ID = config.get("left_joystick_x_id")
     LEFT_JOYSTICK_Y_ID = config.get("left_joystick_y_id")
@@ -30,14 +34,14 @@ def run(
     RIGHT_TRIGGER_ID = config.get("right_trigger_id")
     LEFT_JOYSTICK_DEAD_ZONE = config.get("left_joystick_dead_zone")
     RIGHT_JOYSTICK_DEAD_ZONE = config.get("right_joystick_dead_zone")
-    LEFT_TRIGGER_DEAD_ZONE = config.get("left_trigger_dead_zone")
     RIGHT_TRIGGER_DEAD_ZONE = config.get("right_trigger_dead_zone")
+    LEFT_TRIGGER_DEAD_ZONE = config.get("left_trigger_dead_zone")
     RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
     BUTTON_MAPPING = {v - 1: k for k, v in config.get("button_mapping").items()}
     running = config.get("run_automatically")
     with open("swarm/config.json", "r") as config_file:
         config = json.load(config_file)
-        high_precision = config.get("high_precision_on_by_default")
+        high_precision_always_on = config.get("high_precision_on_by_default")
         MAX_RADIUS_HIGH_PRECISION_OFF = config.get("default_radius")
         current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
     key_state = {
@@ -47,6 +51,8 @@ def run(
         "s": False,
         "tab": False,
         "t": False,
+        "e": False,
+        "r": False,
     }
     center_x = screen_width // 2
     center_y = screen_height // 2
@@ -55,8 +61,6 @@ def run(
         "START": "esc",
         "X": "c",
         "Y": "o",
-        "L1": "e",
-        "R1": "r",
     }
 
     INPUT_TO_KEY_HOLD = {
@@ -65,7 +69,7 @@ def run(
         "LEFT_JOYSTICK_UP": "w",
         "LEFT_JOYSTICK_DOWN": "s",
         "B": "tab",
-        "L3": "t",
+        "R2": "t",
     }
 
     INPUT_TO_MOUSE_MOVE = {
@@ -76,12 +80,19 @@ def run(
         "R3": (center_x, center_y),
     }
 
-    INPUT_TO_LOGIC_BEFORE = {
-        "L3": lambda: functions.move_mouse(mouse, center_x, center_y),
-        "R3": toggle_high_precision,
+    RELEASE_TO_KEY_TAP = {
+        "R1": "r",
+        "L1": "e",
     }
 
-    functions = Functions(keyboard, mouse, INPUT_TO_LOGIC_BEFORE)
+    INPUT_TO_LOGIC_BEFORE = {
+        "R2": lambda: functions.move_mouse(mouse, center_x, center_y),
+        "R3": toggle_high_precision_always_on,
+    }
+
+    INPUT_TO_LOGIC_AFTER = {"R1": reset_radius, "L1": reset_radius}
+
+    functions = Functions(keyboard, mouse, INPUT_TO_LOGIC_BEFORE, INPUT_TO_LOGIC_AFTER)
 
     try:
         last_update_time = time.perf_counter()
@@ -125,18 +136,16 @@ def run(
 
                 if has_triggers:
                     button_state["R2"] = joystick.get_axis(RIGHT_TRIGGER_ID) > RIGHT_TRIGGER_DEAD_ZONE
-                    button_state["L2"] = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                if high_precision or button_state["R2"] and button_state["L2"]:
-                    button_state["R2"] = False
-                    button_state["L2"] = False
-                if button_state["R2"]:
-                    if current_radius < 1:
-                        current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.001
-                elif button_state["L2"]:
-                    if current_radius > 0.2:
-                        current_radius -= RIGHT_JOYSTICK_SENSITIVITY * 0.001
+                    high_precision = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
                 else:
-                    current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
+                    high_precision = button_state["L2"]
+                if button_state["R1"] or button_state["L1"]:
+                    current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.002
+                if button_state["L3"]:
+                    button_state["R1"] = False
+                    key_state["e"] = False
+                    button_state["L1"] = False
+                    key_state["r"] = False
 
                 if button_state["ACTIVATE"]:
                     running = False
@@ -150,15 +159,17 @@ def run(
                     functions.handle_to_key_hold_input(button_state, key_state, input, key_to_press)
                 for input, (x, y) in INPUT_TO_MOUSE_MOVE.items():
                     functions.handle_to_mouse_absolute_move_input(button_state, input, x, y)
+                for input, key_to_tap in RELEASE_TO_KEY_TAP.items():
+                    functions.handle_to_key_tap_release(button_state, key_state, input, key_to_tap)
                 functions.handle_to_click_input(button_state, "A", Button.left)
 
                 if is_right_x_axis_active or is_right_y_axis_active:
-                    if high_precision:
+                    if high_precision_always_on or high_precision:
                         if time.perf_counter() - last_update_time > 0.1:
                             functions.move_mouse_relative(
                                 mouse,
-                                round(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
-                                round(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 100),
+                                round(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 150),
+                                round(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 150),
                             )
                             last_update_time = time.perf_counter()
                     else:

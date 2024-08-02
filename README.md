@@ -9,16 +9,16 @@ It is possible to configure whether the program is activated on boot or not, as 
 The program uses the next button to action map (I didn't want to make this configurable for such a small game, and it is possible to either edit the code or hack a solution through the button ID to button map. Mind that trigger buttons are considered analog sticks for most controllers though):
 
     START -> ESCAPE
-    L1 -> E
-    R1 -> R
     A -> LEFT CLICK
     X -> C
     Y -> O
     B (hold) -> TAB
-    R3 -> toggle high precision mode (e.g for Jinx rocket)
-    L3 (hold) -> T
-    R2 (hold) -> aim closer when not on high precision mode
-    L2 (hold) -> aim further when not on high precision mode
+    L1 -> E (hold to add depth)
+    R1 -> R (hold to add depth)
+    L2 (hold) -> enter high precision mode (e.g for Jinx rocket)
+    R2 (hold) -> T
+    L3 -> cancel spell
+    R3 -> toggle high precision mode
     LEFT JOYSTICK (hold) -> move
     RIGHT JOYSTICK (hold) -> aim
     UP, DOWN, LEFT, RIGHT -> move the mouse to pick a card or reroll
