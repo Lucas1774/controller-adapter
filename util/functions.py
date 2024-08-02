@@ -38,48 +38,36 @@ class Functions:
         if callback:
             callback()
 
-    def handle_to_key_tap_input(self, button_state, input, key_to_tap):
-        if button_state[input]:
+    def handle_to_key_tap_input(self, input_state, input, key_to_tap):
+        if input_state == "JUST_PRESSED":
             self.callback_before_action(input)
             threading.Thread(
                 target=self.press_then_release, args=(key_to_tap, lambda: self.callback_after_action(input))
             ).start()
-            button_state[input] = False
 
-    def handle_to_key_hold_input(self, button_state, key_state, input, key_to_press):
-        if button_state[input]:
-            if not key_state[key_to_press]:
-                self.callback_before_action(input)
-                self.keyboard.press(KEY_MAPPING.get(key_to_press, key_to_press))
-                key_state[key_to_press] = True
-                self.callback_after_action(input)
-        else:
-            if key_state[key_to_press]:
-                self.keyboard.release(KEY_MAPPING.get(key_to_press, key_to_press))
-                key_state[key_to_press] = False
+    def handle_to_key_hold_input(self, input_state, input, key_to_press):
+        if input_state == "JUST_PRESSED":
+            self.callback_before_action(input)
+            self.keyboard.press(KEY_MAPPING.get(key_to_press, key_to_press))
+        elif input_state == "JUST_RELEASED":
+            self.keyboard.release(KEY_MAPPING.get(key_to_press, key_to_press))
+            self.callback_after_action(input)
 
-    def handle_to_mouse_absolute_move_input(self, button_state, input, x, y):
-        if button_state[input]:
+    def handle_to_mouse_absolute_move_input(self, input_state, input, x, y):
+        if input_state == "JUST_PRESSED":
             self.callback_before_action(input)
             self.move_mouse(self.mouse, x, y)
-            button_state[input] = False
             self.callback_after_action(input)
 
-    def handle_to_click_input(self, button_state, input, button_to_click):
-        if button_state[input]:
+    def handle_to_click_input(self, input_state, input, button_to_click):
+        if input_state == "JUST_PRESSED":
             self.callback_before_action(input)
             self.mouse.click(button_to_click)
-            button_state[input] = False
             self.callback_after_action(input)
 
-    def handle_to_key_tap_release(self, button_state, key_state, input, key_to_tap):
-        if not button_state[input]:
-            if key_state[key_to_tap]:
-                self.callback_before_action(input)
-                threading.Thread(
-                    target=self.press_then_release, args=(key_to_tap, lambda: self.callback_after_action(input))
-                ).start()
-                key_state[key_to_tap] = False
-                self.callback_after_action(input)
-        else:
-            key_state[key_to_tap] = True
+    def handle_to_key_tap_release(self, input_state, input, key_to_tap):
+        if input_state == "JUST_RELEASED":
+            self.callback_before_action(input)
+            threading.Thread(
+                target=self.press_then_release, args=(key_to_tap, lambda: self.callback_after_action(input))
+            ).start()

@@ -6,6 +6,9 @@ from pynput.mouse import Button
 
 from util.functions import Functions
 
+PRESSED = {"PRESSED", "JUST_PRESSED"}
+NOT_PRESSED = {"NOT_PRESSED", "JUST_RELEASED"}
+
 
 def run(
     button_state,
@@ -26,17 +29,26 @@ def run(
         nonlocal current_radius
         current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
 
-    LEFT_JOYSTICK_X_ID = config.get("left_joystick_x_id")
-    LEFT_JOYSTICK_Y_ID = config.get("left_joystick_y_id")
-    RIGHT_JOYSTICK_X_ID = config.get("right_joystick_x_id")
-    RIGHT_JOYSTICK_Y_ID = config.get("right_joystick_y_id")
+    def handle_state(state, is_pressed):
+        if is_pressed:
+            if state == "NOT_PRESSED":
+                state = "JUST_PRESSED"
+        else:
+            if state == "PRESSED":
+                state = "JUST_RELEASED"
+        return state
+
+    LEFT_JS_X_ID = config.get("left_joystick_x_id")
+    LEFT_JS_Y_ID = config.get("left_joystick_y_id")
+    RIGHT_JS_X_ID = config.get("right_joystick_x_id")
+    RIGHT_JS_Y_ID = config.get("right_joystick_y_id")
     LEFT_TRIGGER_ID = config.get("left_trigger_id")
     RIGHT_TRIGGER_ID = config.get("right_trigger_id")
-    LEFT_JOYSTICK_DEAD_ZONE = config.get("left_joystick_dead_zone")
-    RIGHT_JOYSTICK_DEAD_ZONE = config.get("right_joystick_dead_zone")
+    LEFT_JS_DEAD_ZONE = config.get("left_joystick_dead_zone")
+    RIGHT_JS_DEAD_ZONE = config.get("right_joystick_dead_zone")
     RIGHT_TRIGGER_DEAD_ZONE = config.get("right_trigger_dead_zone")
     LEFT_TRIGGER_DEAD_ZONE = config.get("left_trigger_dead_zone")
-    RIGHT_JOYSTICK_SENSITIVITY = config.get("right_joystick_sensitivity")
+    RIGHT_JS_SENSITIVITY = config.get("right_joystick_sensitivity")
     BUTTON_MAPPING = {v - 1: k for k, v in config.get("button_mapping").items()}
     running = config.get("run_automatically")
     with open("swarm/config.json", "r") as config_file:
@@ -44,16 +56,6 @@ def run(
         high_precision_always_on = config.get("high_precision_on_by_default")
         MAX_RADIUS_HIGH_PRECISION_OFF = config.get("default_radius")
         current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
-    key_state = {
-        "a": False,
-        "d": False,
-        "w": False,
-        "s": False,
-        "tab": False,
-        "t": False,
-        "e": False,
-        "r": False,
-    }
     center_x = screen_width // 2
     center_y = screen_height // 2
 
@@ -64,10 +66,10 @@ def run(
     }
 
     INPUT_TO_KEY_HOLD = {
-        "LEFT_JOYSTICK_LEFT": "a",
-        "LEFT_JOYSTICK_RIGHT": "d",
-        "LEFT_JOYSTICK_UP": "w",
-        "LEFT_JOYSTICK_DOWN": "s",
+        "LEFT_JS_LEFT": "a",
+        "LEFT_JS_RIGHT": "d",
+        "LEFT_JS_UP": "w",
+        "LEFT_JS_DOWN": "s",
         "B": "tab",
         "R2": "t",
     }
@@ -109,74 +111,86 @@ def run(
                             running = True
                             break
             else:
-                # state
-                left_x_axis = joystick.get_axis(LEFT_JOYSTICK_X_ID)
-                left_y_axis = joystick.get_axis(LEFT_JOYSTICK_Y_ID)
-                is_left_x_axis_active = abs(left_x_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                is_left_y_axis_active = abs(left_y_axis) > LEFT_JOYSTICK_DEAD_ZONE
-                button_state["LEFT_JOYSTICK_LEFT"] = is_left_x_axis_active and left_x_axis < 0
-                button_state["LEFT_JOYSTICK_RIGHT"] = is_left_x_axis_active and left_x_axis > 0
-                button_state["LEFT_JOYSTICK_UP"] = is_left_y_axis_active and left_y_axis < 0
-                button_state["LEFT_JOYSTICK_DOWN"] = is_left_y_axis_active and left_y_axis > 0
-                right_x_axis = joystick.get_axis(RIGHT_JOYSTICK_X_ID)
-                right_y_axis = joystick.get_axis(RIGHT_JOYSTICK_Y_ID)
-                is_right_x_axis_active = abs(right_x_axis) > RIGHT_JOYSTICK_DEAD_ZONE
-                is_right_y_axis_active = abs(right_y_axis) > RIGHT_JOYSTICK_DEAD_ZONE
+                # controller state
+                for key in button_state:
+                    if button_state[key] == "JUST_PRESSED":
+                        button_state[key] = "PRESSED"
+                    elif button_state[key] == "JUST_RELEASED":
+                        button_state[key] = "NOT_PRESSED"
+
+                left_x = joystick.get_axis(LEFT_JS_X_ID)
+                left_y = joystick.get_axis(LEFT_JS_Y_ID)
+                is_left_x_active = abs(left_x) > LEFT_JS_DEAD_ZONE
+                is_left_y_active = abs(left_y) > LEFT_JS_DEAD_ZONE
+                to_left = left_x < 0
+                to_up = left_y < 0
+                button_state["LEFT_JS_LEFT"] = handle_state(button_state["LEFT_JS_LEFT"], is_left_x_active and to_left)
+                button_state["LEFT_JS_RIGHT"] = handle_state(button_state["LEFT_JS_RIGHT"], is_left_x_active and not to_left)
+                button_state["LEFT_JS_UP"] = handle_state(button_state["LEFT_JS_UP"], is_left_y_active and to_up)
+                button_state["LEFT_JS_DOWN"] = handle_state(button_state["LEFT_JS_DOWN"], is_left_y_active and not to_up)
+                right_x = joystick.get_axis(RIGHT_JS_X_ID)
+                right_y = joystick.get_axis(RIGHT_JS_Y_ID)
+                is_right_x_active = abs(right_x) > RIGHT_JS_DEAD_ZONE
+                is_right_y_active = abs(right_y) > RIGHT_JS_DEAD_ZONE
+                if has_triggers:
+                    is_left_trigger_axis_active = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
+                    is_right_trigger_axis_active = joystick.get_axis(RIGHT_TRIGGER_ID) > RIGHT_TRIGGER_DEAD_ZONE
 
                 for event in events:
                     if event.type == pygame.JOYBUTTONDOWN:
-                        button_state[BUTTON_MAPPING.get(event.button)] = True
+                        button = BUTTON_MAPPING.get(event.button)
+                        if button is not None:
+                            button_state[button] = handle_state(button_state[button], True)
                     elif event.type == pygame.JOYBUTTONUP:
-                        button_state[BUTTON_MAPPING.get(event.button)] = False
+                        button = BUTTON_MAPPING.get(event.button)
+                        if button is not None:
+                            button_state[button] = handle_state(button_state[button], False)
                     elif event.type == pygame.JOYHATMOTION:
-                        button_state["LEFT"] = event.value[0] == -1
-                        button_state["RIGHT"] = event.value[0] == 1
-                        button_state["DOWN"] = event.value[1] == -1
-                        button_state["UP"] = event.value[1] == 1
+                        button_state["LEFT"] = handle_state(button_state["LEFT"], event.value[0] == -1)
+                        button_state["RIGHT"] = handle_state(button_state["RIGHT"], event.value[0] == 1)
+                        button_state["DOWN"] = handle_state(button_state["DOWN"], event.value[1] == -1)
+                        button_state["UP"] = handle_state(button_state["UP"], event.value[1] == 1)
 
-                if has_triggers:
-                    button_state["R2"] = joystick.get_axis(RIGHT_TRIGGER_ID) > RIGHT_TRIGGER_DEAD_ZONE
-                    high_precision = joystick.get_axis(LEFT_TRIGGER_ID) > LEFT_TRIGGER_DEAD_ZONE
-                else:
-                    high_precision = button_state["L2"]
-                if button_state["R1"] or button_state["L1"]:
-                    current_radius += RIGHT_JOYSTICK_SENSITIVITY * 0.002
-                if button_state["L3"]:
-                    button_state["R1"] = False
-                    key_state["e"] = False
-                    button_state["L1"] = False
-                    key_state["r"] = False
-
-                if button_state["ACTIVATE"]:
+                # program state
+                if button_state["ACTIVATE"] == "JUST_PRESSED":
                     running = False
-                    button_state["ACTIVATE"] = False
                     continue
+                if has_triggers:
+                    high_precision = is_left_trigger_axis_active
+                    button_state["R2"] = handle_state(button_state["R2"], is_right_trigger_axis_active)
+                else:
+                    high_precision = button_state["L2"] in PRESSED
+                if button_state["R1"] in PRESSED or button_state["L1"] in PRESSED:
+                    current_radius += RIGHT_JS_SENSITIVITY * 0.002
+                if button_state["L3"] == "JUST_PRESSED":
+                    button_state["R1"] = "NOT_PRESSED"
+                    button_state["L1"] = "NOT_PRESSED"
 
                 # action
                 for input, key_to_tap in INPUT_TO_KEY_TAP.items():
-                    functions.handle_to_key_tap_input(button_state, input, key_to_tap)
+                    functions.handle_to_key_tap_input(button_state[input], input, key_to_tap)
                 for input, key_to_press in INPUT_TO_KEY_HOLD.items():
-                    functions.handle_to_key_hold_input(button_state, key_state, input, key_to_press)
+                    functions.handle_to_key_hold_input(button_state[input], input, key_to_press)
                 for input, (x, y) in INPUT_TO_MOUSE_MOVE.items():
-                    functions.handle_to_mouse_absolute_move_input(button_state, input, x, y)
+                    functions.handle_to_mouse_absolute_move_input(button_state[input], input, x, y)
                 for input, key_to_tap in RELEASE_TO_KEY_TAP.items():
-                    functions.handle_to_key_tap_release(button_state, key_state, input, key_to_tap)
-                functions.handle_to_click_input(button_state, "A", Button.left)
+                    functions.handle_to_key_tap_release(button_state[input], input, key_to_tap)
+                functions.handle_to_click_input(button_state["A"], "A", Button.left)
 
-                if is_right_x_axis_active or is_right_y_axis_active:
+                if is_right_x_active or is_right_y_active:
                     if high_precision_always_on or high_precision:
                         if time.perf_counter() - last_update_time > 0.1:
                             functions.move_mouse_relative(
                                 mouse,
-                                round(right_x_axis * RIGHT_JOYSTICK_SENSITIVITY * 150),
-                                round(right_y_axis * RIGHT_JOYSTICK_SENSITIVITY * 150),
+                                round(right_x * RIGHT_JS_SENSITIVITY * 150),
+                                round(right_y * RIGHT_JS_SENSITIVITY * 150),
                             )
                             last_update_time = time.perf_counter()
                     else:
                         functions.move_mouse(
                             mouse,
-                            round((right_x_axis * center_x * current_radius) + center_x),
-                            round((right_y_axis * center_y * current_radius) + center_y),
+                            round((right_x * center_x * current_radius) + center_x),
+                            round((right_y * center_y * current_radius) + center_y),
                         )
 
             time.sleep(max(0.001 - (time.perf_counter() - loop_start_time), 0))
