@@ -29,15 +29,6 @@ def run(
         nonlocal current_radius
         current_radius = MAX_RADIUS_HIGH_PRECISION_OFF
 
-    def handle_state(state, is_pressed):
-        if is_pressed:
-            if state == "NOT_PRESSED":
-                state = "JUST_PRESSED"
-        else:
-            if state == "PRESSED":
-                state = "JUST_RELEASED"
-        return state
-
     LEFT_JS_X_ID = config.get("left_joystick_x_id")
     LEFT_JS_Y_ID = config.get("left_joystick_y_id")
     RIGHT_JS_X_ID = config.get("right_joystick_x_id")
@@ -124,10 +115,10 @@ def run(
                 is_left_y_active = abs(left_y) > LEFT_JS_DEAD_ZONE
                 to_left = left_x < 0
                 to_up = left_y < 0
-                button_state["LEFT_JS_LEFT"] = handle_state(button_state["LEFT_JS_LEFT"], is_left_x_active and to_left)
-                button_state["LEFT_JS_RIGHT"] = handle_state(button_state["LEFT_JS_RIGHT"], is_left_x_active and not to_left)
-                button_state["LEFT_JS_UP"] = handle_state(button_state["LEFT_JS_UP"], is_left_y_active and to_up)
-                button_state["LEFT_JS_DOWN"] = handle_state(button_state["LEFT_JS_DOWN"], is_left_y_active and not to_up)
+                button_state["LEFT_JS_LEFT"] = functions.handle_state(button_state["LEFT_JS_LEFT"], is_left_x_active and to_left)
+                button_state["LEFT_JS_RIGHT"] = functions.handle_state(button_state["LEFT_JS_RIGHT"], is_left_x_active and not to_left)
+                button_state["LEFT_JS_UP"] = functions.handle_state(button_state["LEFT_JS_UP"], is_left_y_active and to_up)
+                button_state["LEFT_JS_DOWN"] = functions.handle_state(button_state["LEFT_JS_DOWN"], is_left_y_active and not to_up)
                 right_x = joystick.get_axis(RIGHT_JS_X_ID)
                 right_y = joystick.get_axis(RIGHT_JS_Y_ID)
                 is_right_x_active = abs(right_x) > RIGHT_JS_DEAD_ZONE
@@ -140,16 +131,16 @@ def run(
                     if event.type == pygame.JOYBUTTONDOWN:
                         button = BUTTON_MAPPING.get(event.button)
                         if button is not None:
-                            button_state[button] = handle_state(button_state[button], True)
+                            button_state[button] = functions.handle_state(button_state[button], True)
                     elif event.type == pygame.JOYBUTTONUP:
                         button = BUTTON_MAPPING.get(event.button)
                         if button is not None:
-                            button_state[button] = handle_state(button_state[button], False)
+                            button_state[button] = functions.handle_state(button_state[button], False)
                     elif event.type == pygame.JOYHATMOTION:
-                        button_state["LEFT"] = handle_state(button_state["LEFT"], event.value[0] == -1)
-                        button_state["RIGHT"] = handle_state(button_state["RIGHT"], event.value[0] == 1)
-                        button_state["DOWN"] = handle_state(button_state["DOWN"], event.value[1] == -1)
-                        button_state["UP"] = handle_state(button_state["UP"], event.value[1] == 1)
+                        button_state["LEFT"] = functions.handle_state(button_state["LEFT"], event.value[0] == -1)
+                        button_state["RIGHT"] = functions.handle_state(button_state["RIGHT"], event.value[0] == 1)
+                        button_state["DOWN"] = functions.handle_state(button_state["DOWN"], event.value[1] == -1)
+                        button_state["UP"] = functions.handle_state(button_state["UP"], event.value[1] == 1)
 
                 # program state
                 if button_state["ACTIVATE"] == "JUST_PRESSED":
@@ -157,7 +148,7 @@ def run(
                     continue
                 if has_triggers:
                     high_precision = is_left_trigger_axis_active
-                    button_state["R2"] = handle_state(button_state["R2"], is_right_trigger_axis_active)
+                    button_state["R2"] = functions.handle_state(button_state["R2"], is_right_trigger_axis_active)
                 else:
                     high_precision = button_state["L2"] in PRESSED
                 if button_state["R1"] in PRESSED or button_state["L1"] in PRESSED:

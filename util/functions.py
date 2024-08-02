@@ -71,3 +71,12 @@ class Functions:
             threading.Thread(
                 target=self.press_then_release, args=(key_to_tap, lambda: self.callback_after_action(input))
             ).start()
+
+    def handle_state(self, state, is_pressed):
+        if is_pressed:
+            if state == "NOT_PRESSED":
+                state = "JUST_PRESSED"
+        else:
+            if state == "PRESSED":
+                state = "JUST_RELEASED"
+        return state
