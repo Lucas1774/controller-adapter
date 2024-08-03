@@ -152,7 +152,7 @@ def run(
                 else:
                     high_precision = button_state["L2"] in PRESSED
                 if button_state["R1"] in PRESSED or button_state["L1"] in PRESSED:
-                    current_radius += RIGHT_JS_SENSITIVITY * 0.002
+                    current_radius += RIGHT_JS_SENSITIVITY * 0.05
                 if button_state["L3"] == "JUST_PRESSED":
                     button_state["R1"] = "NOT_PRESSED"
                     button_state["L1"] = "NOT_PRESSED"
@@ -173,8 +173,8 @@ def run(
                         if time.perf_counter() - last_update_time > 0.1:
                             functions.move_mouse_relative(
                                 mouse,
-                                round(right_x * RIGHT_JS_SENSITIVITY * 150),
-                                round(right_y * RIGHT_JS_SENSITIVITY * 150),
+                                round(right_x * RIGHT_JS_SENSITIVITY * 500),
+                                round(right_y * RIGHT_JS_SENSITIVITY * 500),
                             )
                             last_update_time = time.perf_counter()
                     else:
@@ -183,8 +183,7 @@ def run(
                             round((right_x * center_x * current_radius) + center_x),
                             round((right_y * center_y * current_radius) + center_y),
                         )
-
-            time.sleep(max(0.001 - (time.perf_counter() - loop_start_time), 0))
+            time.sleep(max(0.01 - (time.perf_counter() - loop_start_time), 0))
 
     except KeyboardInterrupt:
         pass

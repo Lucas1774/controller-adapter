@@ -29,7 +29,7 @@
     "left_joystick_dead_zone": 0.5,
     "right_joystick_dead_zone": 0.2,
     "left_joystick_sensitivity": 1,
-    "right_joystick_sensitivity": 1,
+    "right_joystick_sensitivity": 0.5,
     "left_trigger_dead_zone": 0.05,
     "right_trigger_dead_zone": 0.05,
     "cross_sensitivity": 1
